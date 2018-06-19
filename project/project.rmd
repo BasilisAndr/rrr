@@ -15,7 +15,8 @@ library(tidyverse)
 ```
 # morphemes
 
-Gre
+#### Gre 
+(we suppose that it is clearly dialectal)
 
 ```{r}
 wilcox.test(Gr.E..hab.v/v~corpus, data=df)
@@ -27,7 +28,8 @@ df %>% ggplot(aes(speaker, Gr.E..hab.v/v, colour=corpus)) + geom_bar(stat="ident
   theme(axis.text.x = element_text(angle = 60, hjust = 1))
 ```
 
-Plural
+#### Plural 
+(we suppose that it is clearly non-dialectal)
 
 ```{r}
 wilcox.test(L.pl.n/n~corpus, data=df)
@@ -39,7 +41,8 @@ df %>% ggplot(aes(speaker, L.pl.n/overall, colour=corpus)) + geom_bar(stat="iden
   theme(axis.text.x = element_text(angle = 60, hjust = 1))
 ```
 
-Locative on names
+####Locative on names 
+(we suppose it has some significant difference between the two dialects)
 
 ```{r}
 wilcox.test(X.dU.LE.loc.n/overall~corpus, data=df)
@@ -51,7 +54,7 @@ df %>% ggplot(aes(speaker, X.dU.LE.loc.n/overall, colour=corpus)) + geom_bar(sta
 ```
 
 But let's stop and redo the calculations against nouns this time and not all the words, because this is more linguistically reasonable.
-Locative on names against names
+#### Locative on names against names
  
 ```{r}
 wilcox.test(X.dU.LE.loc.n/n~corpus, data=df)
@@ -64,6 +67,7 @@ df %>% ggplot(aes(speaker, X.dU.LE.loc.n/n, colour=corpus)) + geom_bar(stat="ide
 ```
 
 it gives other results than against all words. Why? Probably because of the undisclosed difference in distribution of nouns. Lets's see
+#### nouns distribution
 
 ```{r}
 wilcox.test(n/overall~corpus, data=df)
@@ -110,6 +114,8 @@ We suppose the dialects would cluster
 
 because they are different, because they are different in frequency
 
+The hypothesis is that the dialects are clearly clustered because of the difference in frequency 
+
 We need a visualization that shows this
 
 ```{r}
@@ -122,4 +128,4 @@ corpus_dist %>%
   theme_bw()
 ```
 
-slightly clustered , though outliers are seemingly random (consider the blue dot below to the right)
+The dialects are slightly clustered, though outliers are seemingly random (consider the blue dot below to the right). Maybe PCA is a good tool for analyzing our data.
