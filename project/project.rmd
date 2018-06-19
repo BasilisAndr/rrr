@@ -1,0 +1,125 @@
+---
+title: 'Evens'
+author: "Basilis"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+df <- read.csv('~/Documents/Langs/Even/apply/scripts/all_morphemes.csv')
+library(binom)
+library(Hmisc)
+library(tidyverse)
+```
+# morphemes
+
+Gre
+
+```{r}
+wilcox.test(Gr.E..hab.v/v~corpus, data=df)
+U_Gre = binconf(df$Gr.E..hab.v, df$v, return.df = T)$Upper
+L_Gre = binconf(df$Gr.E..hab.v, df$v, return.df = T)$Lower
+df$speaker <- factor(df$speaker, levels = df$speaker[order(df$Gr.E..hab.v/df$v)])
+df %>% ggplot(aes(speaker, Gr.E..hab.v/v, colour=corpus)) + geom_bar(stat="identity") + 
+  geom_errorbar(data=df, mapping=aes(ymin=(Gr.E..hab.v-L_Gre*Gr.E..hab.v)/v, ymax=(Gr.E..hab.v+U_Gre*Gr.E..hab.v)/v)) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+```
+
+Plural
+
+```{r}
+wilcox.test(L.pl.n/n~corpus, data=df)
+
+U_L = binconf(df$L.pl.n, df$n, return.df = T)$Upper
+L_L = binconf(df$L.pl.n, df$n, return.df = T)$Lower
+df$speaker <- factor(df$speaker, levels = df$speaker[order(df$L.pl.n/df$overall)])
+df %>% ggplot(aes(speaker, L.pl.n/overall, colour=corpus)) + geom_bar(stat="identity") + geom_errorbar(data=df, mapping=aes(ymin=(L.pl.n-L_L*L.pl.n)/overall, ymax=(L.pl.n+U_L*L.pl.n)/overall)) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+```
+
+Locative on names
+
+```{r}
+wilcox.test(X.dU.LE.loc.n/overall~corpus, data=df)
+U = binconf(df$X.dU.LE.loc.n, df$overall, return.df = T)$Upper
+L = binconf(df$X.dU.LE.loc.n, df$overall, return.df = T)$Lower
+df$speaker <- factor(df$speaker, levels = df$speaker[order(df$X.dU.LE.loc.n/df$overall)])
+df %>% ggplot(aes(speaker, X.dU.LE.loc.n/overall, colour=corpus)) + geom_bar(stat="identity") + geom_errorbar(data=df, mapping=aes(ymin=(X.dU.LE.loc.n-L*X.dU.LE.loc.n)/overall, ymax=(X.dU.LE.loc.n+U*X.dU.LE.loc.n)/overall)) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+```
+
+But let's stop and redo the calculations against nouns this time and not all the words, because this is more linguistically reasonable.
+Locative on names against names
+ 
+```{r}
+wilcox.test(X.dU.LE.loc.n/n~corpus, data=df)
+U = binconf(df$X.dU.LE.loc.n, df$n, return.df = T)$Upper
+L = binconf(df$X.dU.LE.loc.n, df$n, return.df = T)$Lower
+df$speaker <- factor(df$speaker, levels = df$speaker[order(df$X.dU.LE.loc.n/df$n)])
+df %>% ggplot(aes(speaker, X.dU.LE.loc.n/n, colour=corpus)) + geom_bar(stat="identity") + 
+  geom_errorbar(data=df, mapping=aes(ymin=(X.dU.LE.loc.n-L*X.dU.LE.loc.n)/n, ymax=(X.dU.LE.loc.n+U*X.dU.LE.loc.n)/n)) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+```
+
+it gives other results than against all words. Why? Probably because of the undisclosed difference in distribution of nouns. Lets's see
+
+```{r}
+wilcox.test(n/overall~corpus, data=df)
+U = binconf(df$n, df$overall, return.df = T)$Upper
+L = binconf(df$n, df$overall, return.df = T)$Lower
+df$speaker <- factor(df$speaker, levels = df$speaker[order(df$n/df$overall)])
+df %>% ggplot(aes(speaker, n/overall, colour=corpus)) + geom_bar(stat="identity") + 
+  geom_errorbar(data=df, mapping=aes(ymin=(n-L*n)/overall, ymax=(n+U*n)/overall)) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+```
+
+
+# PCA
+PCA when we exclude outliers looks like this
+
+```{r}
+library(tidyverse)
+even <- read_csv("~/Downloads/together.csv")
+even %>% 
+  mutate_at(.funs = funs(./overall), 
+            .vars = vars(`(E)ldE-soc-v`:`ŋsI-impf.cvb-v`)) %>% 
+  mutate(speaker = paste(speaker, corpus)) %>% 
+  select(-overall)->
+  even
+
+even <- as.data.frame(even)
+rownames(even) <- even$speaker
+even$speaker <- NULL
+corp <- even$corpus
+even$corpus <- NULL
+
+pca <- prcomp(even[,-1])
+summary(pca)
+library(ggfortify)
+autoplot(pca,
+         shape = FALSE,
+         loadings = TRUE,
+         label = TRUE,
+         loadings.label = TRUE)+
+  theme_bw()
+```
+
+We suppose the dialects would cluster
+
+because they are different, because they are different in frequency
+
+We need a visualization that shows this
+
+```{r}
+corpus_dist=cbind(even, pca$x)
+
+corpus_dist %>% 
+  ggplot(aes(PC1, PC2, color=corp))+
+  geom_point()+
+  stat_ellipse()+
+  theme_bw()
+```
+
+slightly clustered , though outliers are seemingly random (consider the blue dot below to the right)
